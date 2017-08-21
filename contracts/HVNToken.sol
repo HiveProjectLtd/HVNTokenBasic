@@ -163,13 +163,13 @@ contract HVNToken is ERC20Interface, SafeMath, Owned {
     /**
      * Burning functionality
      */
-    function burn(uint256 _amount) ownerOnly returns (bool) {
-        if (_amount > balances[msg.sender]) return false;
+    function burn(address _address, uint256 _amount) ownerOnly returns (bool) {
+        if (_amount > balances[_address]) return false;
 
-        balances[msg.sender] = sub(balances[msg.sender], _amount);
+        balances[_address] = sub(balances[_address], _amount);
         totalSupply  = sub(totalSupply, _amount);
      
-        Burn(msg.sender, _amount);
+        Burn(_address, _amount);
         return true;
     }
 
