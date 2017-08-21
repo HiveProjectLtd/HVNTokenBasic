@@ -26,12 +26,20 @@ contract('HNVToken', (accounts) => {
         })
     });
 
+    it("account 1 should have 1,000 less tokens", () => {
+      return HVNToken.deployed()
+        .then((token) => {
+          return token.balanceOf(accounts[0])
+            .then((balance) => assert.equal(balance.valueOf(), 49999900000000000, "account balance is not 499,999,000.00000000"))
+        })
+    });
+
     it("should fail transfering 2,000 tokens from account 2 to account 4", () => {
       return HVNToken.deployed()
         .then((token) => {
           return token.transfer(accounts[3], 100000000000, { from: accounts[2] })
             .then(() => token.balanceOf(accounts[3]))
-            .catch((err) => assert(evmThrewError(err), 'the EVM did not throw an error or did not throw the expected error'))
+            .catch((err) => assert(evmThrewError(err), err.message))
         })
     });
   })
@@ -61,7 +69,7 @@ contract('HNVToken', (accounts) => {
         .then(token => {
           return token.transferFrom(accounts[0], accounts[5], 15000000000, { from: accounts[5] })
             .then(() => token.balanceOf(accounts[3]))
-            .catch((err) => assert(evmThrewError(err), 'the EVM did not throw an error or did not throw the expected error'))
+            .catch((err) => assert(evmThrewError(err), err.message))
         })
     })
   })
@@ -74,7 +82,7 @@ contract('HNVToken', (accounts) => {
           .then((t) => token = t)
           .then(() => token.freezeTransfers())
           .then(() => token.transfer(accounts[6], 100000000000, { from: accounts[0] }))
-          .catch((err) => assert(evmThrewError(err), 'the EVM did not throw an error or did not throw the expected error'))
+          .catch((err) => assert(evmThrewError(err), err.message))
       })
 
       it("owner should be able to unfreeze transfers and they should succeed", () => {
@@ -92,7 +100,7 @@ contract('HNVToken', (accounts) => {
         return HVNToken.deployed()
           .then((t) => token = t)
           .then(() => token.freezeTransfers({ from: accounts[1] }))
-          .catch((err) => assert(evmThrewError(err), 'the EVM did not throw an error or did not throw the expected error'))
+          .catch((err) => assert(evmThrewError(err), err.message))
       })
 
       it("not-owner should not be able to unfreeze", () => {
@@ -101,7 +109,7 @@ contract('HNVToken', (accounts) => {
           .then((t) => token = t)
           .then(() => token.freezeTransfers())
           .then(() => token.unfreezeTransfers({ from: accounts[1] }))
-          .catch((err) => assert(evmThrewError(err), 'the EVM did not throw an error or did not throw the expected error'))
+          .catch((err) => assert(evmThrewError(err), err.message))
       })
   })
 
@@ -109,18 +117,24 @@ contract('HNVToken', (accounts) => {
     it("should mint 10,000 tokens", () => {
       return HVNToken.deployed()
         .then((token) => {
-          token.mint(accounts[0], 1000000000000)
-            .then(() => token.totalSupply())
-            .then((supply) => assert.equal(supply.valueOf(), 50001000000000000, "initial supply is not 500,010,000.00000000"))
+          return token.totalSupply()
+            .then(supplyBefore => {
+              return token.mint(accounts[0], 1000000000000)
+                .then(() => token.totalSupply())
+                .then((supplyAfter) => assert.equal(supplyAfter.valueOf(), parseInt(supplyBefore.valueOf()) + 1000000000000, "did not mint 10,000 tokens"))
+            })
         })
     });
 
     it("should burn 10,000 tokens", () => {
       return HVNToken.deployed()
         .then((token) => {
-          token.burn(accounts[0], 1000000000000)
-            .then(() => token.totalSupply())
-            .then((supply) => assert.equal(supply.valueOf(), 50000000000000000, "initial supply is not 500,000,000.00000000"))
+          return token.totalSupply()
+            .then(supplyBefore => {
+              return token.burn(accounts[0], 1000000000000)
+                .then(() => token.totalSupply())
+                .then((supplyAfter) => assert.equal(supplyAfter.valueOf(), parseInt(supplyBefore.valueOf()) - 1000000000000, "did not burn 10,000 tokens"))
+            })
         })
     });
 
@@ -129,15 +143,15 @@ contract('HNVToken', (accounts) => {
       return HVNToken.deployed()
         .then((t) => token = t)
         .then(() => token.mint(accounts[1], 10000000000000, { from: accounts[1] }))
-        .catch((err) => assert(evmThrewError(err), 'the EVM did not throw an error or did not throw the expected error'))
+        .catch((err) => assert(evmThrewError(err), err.message))
     })
 
     it("not-owner should not be able to burn", () => {
       let token = null;
       return HVNToken.deployed()
         .then((t) => token = t)
-        .then(() => token.mint(accounts[0], 10000000000000, { from: accounts[1] }))
-        .catch((err) => assert(evmThrewError(err), 'the EVM did not throw an error or did not throw the expected error'))
+        .then(() => token.burn(accounts[0], 10000000000000, { from: accounts[1] }))
+        .catch((err) => assert(evmThrewError(err), err.message))
     })
   })
 });
