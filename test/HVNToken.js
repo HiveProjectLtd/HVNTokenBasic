@@ -119,21 +119,9 @@ contract('HNVToken', (accounts) => {
         .then((token) => {
           return token.totalSupply()
             .then(supplyBefore => {
-              return token.mint(accounts[0], 1000000000000)
+              return token.mint(1000000000000)
                 .then(() => token.totalSupply())
                 .then((supplyAfter) => assert.equal(supplyAfter.valueOf(), parseInt(supplyBefore.valueOf()) + 1000000000000, "did not mint 10,000 tokens"))
-            })
-        })
-    });
-
-    it("should burn 10,000 tokens", () => {
-      return HVNToken.deployed()
-        .then((token) => {
-          return token.totalSupply()
-            .then(supplyBefore => {
-              return token.burn(accounts[0], 1000000000000)
-                .then(() => token.totalSupply())
-                .then((supplyAfter) => assert.equal(supplyAfter.valueOf(), parseInt(supplyBefore.valueOf()) - 1000000000000, "did not burn 10,000 tokens"))
             })
         })
     });
@@ -142,16 +130,21 @@ contract('HNVToken', (accounts) => {
       let token = null;
       return HVNToken.deployed()
         .then((t) => token = t)
-        .then(() => token.mint(accounts[1], 10000000000000, { from: accounts[1] }))
+        .then(() => token.mint(10000000000000, { from: accounts[1] }))
         .catch((err) => assert(evmThrewError(err), err.message))
     })
 
-    it("not-owner should not be able to burn", () => {
+    it("anyone should be able to burn their tokens", () => {
       let token = null;
       return HVNToken.deployed()
-        .then((t) => token = t)
-        .then(() => token.burn(accounts[0], 10000000000000, { from: accounts[1] }))
-        .catch((err) => assert(evmThrewError(err), err.message))
+        .then((token) => {
+          return token.totalSupply()
+            .then(supplyBefore => {
+              return token.burn(100000000,  { from: accounts[1] })
+                .then(() => token.totalSupply())
+                .then((supplyAfter) => assert.equal(supplyAfter.valueOf(), parseInt(supplyBefore.valueOf()) - 100000000, "did not burn 1 token"))
+            })
+        })
     })
   })
 });
