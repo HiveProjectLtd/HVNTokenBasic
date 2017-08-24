@@ -44,7 +44,7 @@ contract HVNToken is ERC20Interface, SafeMath, Owned {
     /**
      * Check if transfers are on hold - frozen
      */
-    modifier isFrozen(){
+    modifier whenNotFrozen(){
         if (transfersFrozen) revert();
         _;
     }
@@ -52,7 +52,7 @@ contract HVNToken is ERC20Interface, SafeMath, Owned {
 
     function HVNToken() ownerOnly {
         // send all tokens to the owner
-        mint(owner, 50000000000000000);
+        mint(50000000000000000);
     }
 
 
@@ -81,8 +81,7 @@ contract HVNToken is ERC20Interface, SafeMath, Owned {
     /**
      * Transfer sender's tokens to a given address
      */
-    function transfer(address _to, uint256 _value) isFrozen onlyPayloadSize(2) returns (bool success) {
-        require(_value >= 0);
+    function transfer(address _to, uint256 _value) whenNotFrozen onlyPayloadSize(2) returns (bool success) {
         if(_to == 0x0) {
             return false;
         }
@@ -97,8 +96,7 @@ contract HVNToken is ERC20Interface, SafeMath, Owned {
     /**
      * Transfer _from's tokens to _to's address
      */
-    function transferFrom(address _from, address _to, uint256 _value) isFrozen onlyPayloadSize(3) returns (bool success) {
-        require(_value >= 0);
+    function transferFrom(address _from, address _to, uint256 _value) whenNotFrozen onlyPayloadSize(3) returns (bool success) {
         require(_to != 0x0);
         require(balances[_from] >= _value && allowed[_from][msg.sender] >= _value);
 
@@ -122,6 +120,7 @@ contract HVNToken is ERC20Interface, SafeMath, Owned {
      * Sets approved amount of tokens for spender.
      */
     function approve(address _spender, uint256 _value) onlyPayloadSize(2) returns (bool success) {
+        require(_value == 0 || allowed[msg.sender][_spender] == 0);
         allowed[msg.sender][_spender] = _value;
         Approval(msg.sender, _spender, _value);
         return true;
@@ -151,25 +150,24 @@ contract HVNToken is ERC20Interface, SafeMath, Owned {
     /**
      * Minting functionality
      */
-    function mint(address _address, uint256 _amount) ownerOnly {
-
-        balances[_address] = add(balances[_address], _amount);
+    function mint(uint256 _amount) ownerOnly {
+        balances[owner] = add(balances[owner], _amount);
         totalSupply = add(totalSupply, _amount);
 
-        Mint(_address, _amount);
+        Mint(owner, _amount);
     }
 
 
     /**
      * Burning functionality
      */
-    function burn(address _address, uint256 _amount) ownerOnly returns (bool) {
-        if (_amount > balances[_address]) return false;
+    function burn(uint256 _amount) returns (bool) {
+        if (_amount > balances[msg.sender]) return false;
 
-        balances[_address] = sub(balances[_address], _amount);
+        balances[msg.sender] = sub(balances[msg.sender], _amount);
         totalSupply  = sub(totalSupply, _amount);
      
-        Burn(_address, _amount);
+        Burn(msg.sender, _amount);
         return true;
     }
 
