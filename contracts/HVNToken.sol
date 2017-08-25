@@ -31,7 +31,7 @@ contract HVNToken is ERC20Interface, SafeMath, Owned {
     uint8 public constant decimals = 8;
     string public version = '0.0.1';
 
-    bool private transfersFrozen = false;
+    bool public transfersFrozen = false;
 
     /**
      * Protection against short address attack
@@ -82,10 +82,8 @@ contract HVNToken is ERC20Interface, SafeMath, Owned {
      * Transfer sender's tokens to a given address
      */
     function transfer(address _to, uint256 _value) whenNotFrozen onlyPayloadSize(2) returns (bool success) {
-        if(_to == 0x0) {
-            return false;
-        }
-    
+        require(_to != 0x0);
+
         balances[msg.sender] = sub(balances[msg.sender], _value);
         balances[_to] += _value;
         Transfer(msg.sender, _to, _value);
@@ -138,7 +136,7 @@ contract HVNToken is ERC20Interface, SafeMath, Owned {
     /**
      * Approve and then communicate the approved contract in a single transaction
      */
-    function approveAndCall(address _spender, uint256 _value, bytes _extraData)  onlyPayloadSize(2) returns (bool success) {
+    function approveAndCall(address _spender, uint256 _value, bytes _extraData)  onlyPayloadSize(3) returns (bool success) {
         tokenRecipient spender = tokenRecipient(_spender);
         if (approve(_spender, _value)) {
             spender.receiveApproval(msg.sender, _value, this, _extraData);
@@ -155,6 +153,7 @@ contract HVNToken is ERC20Interface, SafeMath, Owned {
         totalSupply = add(totalSupply, _amount);
 
         Mint(owner, _amount);
+        Transfer(0x0, owner, _amount);
     }
 
 
@@ -168,6 +167,7 @@ contract HVNToken is ERC20Interface, SafeMath, Owned {
         totalSupply  = sub(totalSupply, _amount);
      
         Burn(msg.sender, _amount);
+        Transfer(msg.sender, 0x0, _amount);
         return true;
     }
 
@@ -185,13 +185,13 @@ contract HVNToken is ERC20Interface, SafeMath, Owned {
         HVNToken token = HVNToken(_token);
         uint balance = token.balanceOf(this);
         token.transfer(owner, balance);
-        logTokenTransfer(_token, owner, balance);
+
+        Transfer(_token, owner, balance);
     }
 
 
     event Freeze (address indexed owner);
     event Unfreeze (address indexed owner);
-    event logTokenTransfer(address token, address to, uint amount);
     event Mint(address indexed to, uint amount);
     event Burn(address indexed from, uint amount);
 }
