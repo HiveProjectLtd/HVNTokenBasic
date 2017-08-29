@@ -29,7 +29,7 @@ contract HVNToken is ERC20Interface, SafeMath, Owned {
     string public constant name = "Hive Project Token";
     string public constant symbol = "HVN";
     uint8 public constant decimals = 8;
-    string public version = '0.0.1';
+    string public version = '0.0.2';
 
     bool public transfersFrozen = false;
 
@@ -51,8 +51,8 @@ contract HVNToken is ERC20Interface, SafeMath, Owned {
 
 
     function HVNToken() ownerOnly {
-        // send all tokens to the owner
-        mint(50000000000000000);
+        totalSupply = 50000000000000000;
+        balances[owner] = totalSupply;
     }
 
 
@@ -134,45 +134,6 @@ contract HVNToken is ERC20Interface, SafeMath, Owned {
 
 
     /**
-     * Approve and then communicate the approved contract in a single transaction
-     */
-    function approveAndCall(address _spender, uint256 _value, bytes _extraData)  onlyPayloadSize(3) returns (bool success) {
-        tokenRecipient spender = tokenRecipient(_spender);
-        if (approve(_spender, _value)) {
-            spender.receiveApproval(msg.sender, _value, this, _extraData);
-            return true;
-        }
-    }
-
-
-    /**
-     * Minting functionality
-     */
-    function mint(uint256 _amount) ownerOnly {
-        balances[owner] = add(balances[owner], _amount);
-        totalSupply = add(totalSupply, _amount);
-
-        Mint(owner, _amount);
-        Transfer(0x0, owner, _amount);
-    }
-
-
-    /**
-     * Burning functionality
-     */
-    function burn(uint256 _amount) returns (bool) {
-        if (_amount > balances[msg.sender]) return false;
-
-        balances[msg.sender] = sub(balances[msg.sender], _amount);
-        totalSupply  = sub(totalSupply, _amount);
-     
-        Burn(msg.sender, _amount);
-        Transfer(msg.sender, 0x0, _amount);
-        return true;
-    }
-
-
-    /**
      * Peterson's Law Protection
      * Claim tokens
      */
@@ -192,6 +153,4 @@ contract HVNToken is ERC20Interface, SafeMath, Owned {
 
     event Freeze (address indexed owner);
     event Unfreeze (address indexed owner);
-    event Mint(address indexed to, uint amount);
-    event Burn(address indexed from, uint amount);
 }

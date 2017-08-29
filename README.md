@@ -4,7 +4,6 @@ This is implementation of ERC20 HVN token.
 
 Implementation supports also following protections:
 - Freez and UnFreez transfers
-- Burn and Mint
 - Short address protection
 
 ## Implementation

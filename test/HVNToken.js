@@ -15,9 +15,11 @@ const thousandTokens = 1000 * oneToken
 const hundredTokens = 100 * oneToken
 const fiftyTokens = 50 * oneToken
 
-it("Current date is: " + new Date().toLocaleString("en-US", {timeZone: "UTC"}))
+console.log("-".repeat(40))
+console.log("\n", "Current date is:", new Date().toLocaleString("en-US", {timeZone: "UTC"}))
+console.log("-".repeat(40))
 
-contract('HNVToken', (accounts) => {
+contract('HVNToken', (accounts) => {
   it("should have total supply of 500,000,000.00000000 tokens", () => {
     return HVNToken.deployed()
       .then((token) => token.totalSupply())
@@ -133,40 +135,5 @@ contract('HNVToken', (accounts) => {
           .then(() => token.unfreezeTransfers({ from: accounts[1] }))
           .catch((err) => assert(evmThrewError(err), err.message))
       })
-  })
-
-  describe("Mint/Burn", () => {
-    it("should mint 10,000 tokens", () => {
-      return HVNToken.deployed()
-        .then((token) => {
-          return token.totalSupply()
-            .then(supplyBefore => {
-              return token.mint(tenThousandsTokens)
-                .then(() => token.totalSupply())
-                .then((supplyAfter) => assert.equal(supplyAfter.valueOf(), parseInt(supplyBefore.valueOf()) + tenThousandsTokens, "did not mint 10,000 tokens"))
-            })
-        })
-    })
-
-    it("not-owner should not be able to mint", () => {
-      let token = null
-      return HVNToken.deployed()
-        .then((t) => token = t)
-        .then(() => token.mint(tenThousandsTokens, { from: accounts[1] }))
-        .catch((err) => assert(evmThrewError(err), err.message))
-    })
-
-    it("anyone should be able to burn their tokens", () => {
-      let token = null
-      return HVNToken.deployed()
-        .then((token) => {
-          return token.totalSupply()
-            .then(supplyBefore => {
-              return token.burn(oneToken,  { from: accounts[1] })
-                .then(() => token.totalSupply())
-                .then((supplyAfter) => assert.equal(supplyAfter.valueOf(), parseInt(supplyBefore.valueOf()) - oneToken, "did not burn 1 token"))
-            })
-        })
-    })
   })
 })
