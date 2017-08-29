@@ -16,7 +16,6 @@ pragma solidity ^0.4.11;
 import "./ERC20Interface.sol";
 import "./Owned.sol";
 import "./SafeMath.sol";
-import "./TokenRecipient.sol";
 
 
 /**
