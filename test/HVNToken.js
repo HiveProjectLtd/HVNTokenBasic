@@ -1,4 +1,8 @@
 var HVNToken = artifacts.require("./HVNToken.sol");
+
+var SampleRecipientSuccess = artifacts.require('./SampleRecipientSuccess.sol')
+var SampleRecipientThrow = artifacts.require('./SampleRecipientThrow.sol')
+
 var fs = require('fs');
 
 const evmThrewError = (err) => {
@@ -95,6 +99,32 @@ contract('HVNToken', (accounts) => {
             .then(() => token.balanceOf(accounts[3]))
             .catch((err) => assert(evmThrewError(err), err.message))
         })
+    })
+
+    it("should approve 100 to SampleRecipient and then notify SampleRecipient", () => {
+      return HVNToken.deployed()
+        .then(token => {
+          return SampleRecipientSuccess.new({from: accounts[0]})
+            .then((sampleRecipient) => {
+              return token.approveAndCall(sampleRecipient.address, hundredTokens, '0x42')
+                .then(() =>  token.allowance(accounts[0], sampleRecipient.address))
+                .then(allowance => assert.strictEqual(allowance.toNumber(), hundredTokens))
+                .then(() =>  sampleRecipient.value())
+                .then(value => assert.strictEqual(value.toNumber(), hundredTokens))
+            })
+
+        })
+    })
+
+    it("should approve 100 to SampleRecipient and then notify SampleRecipient which will fail", () => {
+      return HVNToken.deployed()
+        .then(token => {
+          return SampleRecipientThrow.new({from: accounts[0]})
+            .then((sampleRecipient) => {
+              return token.approveAndCall(sampleRecipient.address, hundredTokens, '0x42')
+            })
+        })
+        .catch((err) => assert(evmThrewError(err), err.message))
     })
   })
 

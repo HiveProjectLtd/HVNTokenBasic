@@ -16,6 +16,7 @@ pragma solidity ^0.4.11;
 import "./ERC20Interface.sol";
 import "./Owned.sol";
 import "./SafeMath.sol";
+import "./TokenRecipient.sol";
 
 
 /**
@@ -116,11 +117,23 @@ contract HVNToken is ERC20Interface, SafeMath, Owned {
     /**
      * Sets approved amount of tokens for spender.
      */
-    function approve(address _spender, uint256 _value) onlyPayloadSize(2) returns (bool success) {
+    function approve(address _spender, uint256 _value) returns (bool success) {
         require(_value == 0 || allowed[msg.sender][_spender] == 0);
         allowed[msg.sender][_spender] = _value;
         Approval(msg.sender, _spender, _value);
         return true;
+    }
+
+
+    /**
+     * Approve and then communicate the approved contract in a single transaction
+     */
+    function approveAndCall(address _spender, uint256 _value, bytes _extraData) returns (bool success) {
+        TokenRecipient spender = TokenRecipient(_spender);
+        if (approve(_spender, _value)) {
+            spender.receiveApproval(msg.sender, _value, this, _extraData);
+            return true;
+        }
     }
 
 
