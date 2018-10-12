@@ -1,6 +1,6 @@
-# Hive-Project HVN Token
+# Hiveterminal Token (HVN)
 
-This is implementation of ERC20 HVN token.
+This is implementation of HVN, an ERC20 token.
 
 Implementation supports also following protections:
 - Freez and UnFreez transfers
